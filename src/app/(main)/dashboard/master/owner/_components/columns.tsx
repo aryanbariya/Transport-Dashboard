@@ -15,7 +15,7 @@ import {
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import type { Owner } from "./schema";
 
-export const ownerColumns: ColumnDef<Owner>[] = [
+export const getOwnerColumns = (onEdit: (owner: Owner) => void): ColumnDef<Owner>[] => [
     {
         id: "select",
         header: ({ table }) => (
@@ -97,7 +97,7 @@ export const ownerColumns: ColumnDef<Owner>[] = [
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem>View details</DropdownMenuItem>
-                        <DropdownMenuItem>Edit owner</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onEdit(owner)}>Edit owner</DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
             );

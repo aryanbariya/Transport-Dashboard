@@ -18,14 +18,36 @@ import { DataTable as DataTableCore } from "@/components/data-table/data-table";
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
 import { DataTableViewOptions } from "@/components/data-table/data-table-view-options";
 
-import { ownerColumns } from "./columns";
+import { getOwnerColumns } from "./columns";
 import type { Owner } from "./schema";
 import { useOwners } from "@/hooks/use-owners";
 import { Skeleton } from "@/components/ui/skeleton";
 
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
+import { OwnerForm } from "./owner-form";
+
 export function OwnerTable() {
+    const [editingOwner, setEditingOwner] = React.useState<Owner | null>(null);
+    const [open, setOpen] = React.useState(false);
+
+    const handleEdit = React.useCallback((owner: Owner) => {
+        setEditingOwner(owner);
+        setOpen(true);
+    }, []);
+
+    const handleAdd = React.useCallback(() => {
+        setEditingOwner(null);
+        setOpen(true);
+    }, []);
+
     // Memoize columns to ensure reference stability
-    const columns = React.useMemo(() => ownerColumns, []);
+    const columns = React.useMemo(() => getOwnerColumns(handleEdit), [handleEdit]);
 
     // Internal state for the table to ensure maximum reactivity
     const [rowSelection, setRowSelection] = React.useState({});
@@ -101,10 +123,24 @@ export function OwnerTable() {
                 </div>
                 <div className="flex items-center gap-2">
                     <DataTableViewOptions table={table} />
-                    <Button size="sm">
-                        <Plus className="mr-2 size-4" />
-                        Add Owner
-                    </Button>
+                    <Dialog open={open} onOpenChange={setOpen}>
+                        <DialogTrigger asChild>
+                            <Button size="sm" onClick={handleAdd}>
+                                <Plus className="mr-2 size-4" />
+                                Add Owner
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-md">
+                            <DialogHeader>
+                                <DialogTitle>{editingOwner ? "Edit Owner" : "Add New Owner"}</DialogTitle>
+                            </DialogHeader>
+                            <OwnerForm
+                                onSuccess={() => setOpen(false)}
+                                onCancel={() => setOpen(false)}
+                                initialData={editingOwner ?? undefined}
+                            />
+                        </DialogContent>
+                    </Dialog>
                 </div>
             </div>
             <div className="rounded-md border">
