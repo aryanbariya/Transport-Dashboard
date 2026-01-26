@@ -22,6 +22,9 @@ import { getOwnerColumns } from "./columns";
 import type { Owner } from "./schema";
 import { useOwners } from "@/hooks/use-owners";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
+import { toast } from "sonner";
 
 import {
     Dialog,
@@ -33,21 +36,10 @@ import {
 import { OwnerForm } from "./owner-form";
 
 export function OwnerTable() {
+    const queryClient = useQueryClient();
     const [editingOwner, setEditingOwner] = React.useState<Owner | null>(null);
     const [open, setOpen] = React.useState(false);
-
-    const handleEdit = React.useCallback((owner: Owner) => {
-        setEditingOwner(owner);
-        setOpen(true);
-    }, []);
-
-    const handleAdd = React.useCallback(() => {
-        setEditingOwner(null);
-        setOpen(true);
-    }, []);
-
-    // Memoize columns to ensure reference stability
-    const columns = React.useMemo(() => getOwnerColumns(handleEdit), [handleEdit]);
+    const [statusFilter, setStatusFilter] = React.useState("all");
 
     // Internal state for the table to ensure maximum reactivity
     const [rowSelection, setRowSelection] = React.useState({});
@@ -59,9 +51,39 @@ export function OwnerTable() {
         pageSize: 10,
     });
 
+    const handleEdit = React.useCallback((owner: Owner) => {
+        setEditingOwner(owner);
+        setOpen(true);
+    }, []);
+
+    const handleToggleStatus = React.useCallback(async (owner: Owner) => {
+        try {
+            await axios.patch(`/api/owners/${owner.uuid}/status`);
+            toast.success(`Owner status updated to ${owner.status === "Active" ? "Inactive" : "Active"}`);
+            queryClient.invalidateQueries({ queryKey: ["owners"] });
+        } catch (error) {
+            console.error("Failed to toggle owner status:", error);
+            toast.error("Failed to update owner status");
+        }
+    }, [queryClient]);
+
+    const handleAdd = React.useCallback(() => {
+        setEditingOwner(null);
+        setOpen(true);
+    }, []);
+
+    const handleStatusFilterChange = React.useCallback((status: string) => {
+        setStatusFilter(status);
+        setPagination((prev) => ({ ...prev, pageIndex: 0 })); // Reset to first page on filter change
+    }, []);
+
+    // Memoize columns to ensure reference stability
+    const columns = React.useMemo(() => getOwnerColumns(handleEdit, handleToggleStatus, statusFilter, handleStatusFilterChange), [handleEdit, handleToggleStatus, statusFilter, handleStatusFilterChange]);
+
     const { data: response, isLoading, isError } = useOwners({
         page: pagination.pageIndex + 1,
         limit: pagination.pageSize,
+        status: statusFilter,
     });
 
     const data = React.useMemo(() => response?.data ?? [], [response]);

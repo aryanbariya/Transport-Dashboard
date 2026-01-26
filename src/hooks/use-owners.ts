@@ -5,14 +5,16 @@ import type { OwnerResponse } from "@/app/(main)/dashboard/master/owner/_compone
 interface UseOwnersProps {
     page: number;
     limit: number;
+    status?: string;
 }
 
-export function useOwners({ page, limit }: UseOwnersProps) {
+export function useOwners({ page, limit, status }: UseOwnersProps) {
     return useQuery({
-        queryKey: ["owners", page, limit],
+        queryKey: ["owners", page, limit, status],
         queryFn: async () => {
+            const statusParam = status && status !== "all" ? `&status=${status}` : "";
             const { data } = await axios.get<OwnerResponse>(
-                `/api/owners?page=${page}&limit=${limit}`
+                `/api/owners/unified?page=${page}&limit=${limit}${statusParam}`
             );
             return data;
         },
