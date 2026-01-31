@@ -63,7 +63,7 @@ export const getOwnerColumns = (
         {
             accessorKey: "address",
             header: ({ column }) => <DataTableColumnHeader column={column} title="Address" />,
-            cell: ({ row }) => <div>{row.getValue("address")}</div>,
+            cell: ({ row }) => <div className="max-w-[300px] whitespace-normal truncate hover:whitespace-normal hover:overflow-visible">{row.getValue("address")}</div>,
         },
         {
             accessorKey: "status",

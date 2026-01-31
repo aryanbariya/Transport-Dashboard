@@ -5,14 +5,16 @@ import type { EmployeeResponse } from "@/app/(main)/dashboard/master/employee/_c
 interface UseEmployeesProps {
     page: number;
     limit: number;
+    status?: string;
 }
 
-export function useEmployees({ page, limit }: UseEmployeesProps) {
+export function useEmployees({ page, limit, status }: UseEmployeesProps) {
     return useQuery({
-        queryKey: ["employees", page, limit],
+        queryKey: ["employees", page, limit, status],
         queryFn: async () => {
+            const statusParam = status && status !== "all" ? `&status=${status}` : "";
             const { data } = await axios.get<EmployeeResponse>(
-                `/api/employees?page=${page}&limit=${limit}`
+                `/api/employees/unified?page=${page}&limit=${limit}${statusParam}`
             );
             return data;
         },

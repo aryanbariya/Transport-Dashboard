@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { get } from '@/lib/axios';
+import { get, post } from '@/lib/axios';
 
 export async function GET(request: NextRequest) {
     try {
@@ -15,6 +15,21 @@ export async function GET(request: NextRequest) {
         console.error('Error in GET /api/employees:', error);
         return NextResponse.json(
             { error: 'Internal server error' },
+            { status: 500 }
+        );
+    }
+}
+
+export async function POST(request: NextRequest) {
+    try {
+        const body = await request.json();
+        const data = await post('/api/employees', body);
+
+        return NextResponse.json(data, { status: 201 });
+    } catch (error) {
+        console.error('Error in POST /api/employees:', error);
+        return NextResponse.json(
+            { error: 'Failed to create employee' },
             { status: 500 }
         );
     }
