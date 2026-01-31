@@ -19,11 +19,28 @@ import { DataTablePagination } from "@/components/data-table/data-table-paginati
 import { DataTableViewOptions } from "@/components/data-table/data-table-view-options";
 import { Skeleton } from "@/components/ui/skeleton";
 
-import { employeeColumns } from "./columns";
+import { getEmployeeColumns } from "./columns";
+import type { Employee } from "./schema";
 import { useEmployees } from "@/hooks/use-employees";
 
+import { useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
+import { toast } from "sonner";
+
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
+import { EmployeeForm } from "./employee-form";
+
 export function EmployeeTable() {
-    const columns = React.useMemo(() => employeeColumns, []);
+    const queryClient = useQueryClient();
+    const [editingEmployee, setEditingEmployee] = React.useState<Employee | null>(null);
+    const [open, setOpen] = React.useState(false);
+    const [statusFilter, setStatusFilter] = React.useState("all");
 
     const [rowSelection, setRowSelection] = React.useState({});
     const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
@@ -34,9 +51,38 @@ export function EmployeeTable() {
         pageSize: 10,
     });
 
+    const handleEdit = React.useCallback((employee: Employee) => {
+        setEditingEmployee(employee);
+        setOpen(true);
+    }, []);
+
+    const handleToggleStatus = React.useCallback(async (employee: Employee) => {
+        try {
+            await axios.patch(`/api/employees/${employee.uuid}/status`);
+            toast.success(`Employee status updated to ${employee.status === "Active" ? "Inactive" : "Active"}`);
+            queryClient.invalidateQueries({ queryKey: ["employees"] });
+        } catch (error) {
+            console.error("Failed to toggle employee status:", error);
+            toast.error("Failed to update employee status");
+        }
+    }, [queryClient]);
+
+    const handleAdd = React.useCallback(() => {
+        setEditingEmployee(null);
+        setOpen(true);
+    }, []);
+
+    const handleStatusFilterChange = React.useCallback((status: string) => {
+        setStatusFilter(status);
+        setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+    }, []);
+
+    const columns = React.useMemo(() => getEmployeeColumns(handleEdit, handleToggleStatus, statusFilter, handleStatusFilterChange), [handleEdit, handleToggleStatus, statusFilter, handleStatusFilterChange]);
+
     const { data: response, isLoading, isError } = useEmployees({
         page: pagination.pageIndex + 1,
         limit: pagination.pageSize,
+        status: statusFilter,
     });
 
     const data = React.useMemo(() => response?.data ?? [], [response]);
@@ -98,10 +144,24 @@ export function EmployeeTable() {
                 </div>
                 <div className="flex items-center gap-2">
                     <DataTableViewOptions table={table} />
-                    <Button size="sm">
-                        <Plus className="mr-2 size-4" />
-                        Add Employee
-                    </Button>
+                    <Dialog open={open} onOpenChange={setOpen}>
+                        <DialogTrigger asChild>
+                            <Button size="sm" onClick={handleAdd}>
+                                <Plus className="mr-2 size-4" />
+                                Add Employee
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-6xl">
+                            <DialogHeader>
+                                <DialogTitle>{editingEmployee ? "Edit Employee" : "Add New Employee"}</DialogTitle>
+                            </DialogHeader>
+                            <EmployeeForm
+                                onSuccess={() => setOpen(false)}
+                                onCancel={() => setOpen(false)}
+                                initialData={editingEmployee ?? undefined}
+                            />
+                        </DialogContent>
+                    </Dialog>
                 </div>
             </div>
             <div className="rounded-md border">
