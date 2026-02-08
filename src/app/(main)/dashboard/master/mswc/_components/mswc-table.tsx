@@ -19,11 +19,25 @@ import { DataTablePagination } from "@/components/data-table/data-table-paginati
 import { DataTableViewOptions } from "@/components/data-table/data-table-view-options";
 import { Skeleton } from "@/components/ui/skeleton";
 
-import { mswcColumns } from "./columns";
+import { getMSWCColumns } from "./columns";
 import { useMSWC } from "@/hooks/use-mswc";
+import { MSWCForm } from "./mswc-form";
+import type { MSWC } from "./schema";
+import { useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
+import { toast } from "sonner";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
 
 export function MSWCTable() {
-    const columns = React.useMemo(() => mswcColumns, []);
+    const queryClient = useQueryClient();
+    const [editingMSWC, setEditingMSWC] = React.useState<MSWC | null>(null);
+    const [open, setOpen] = React.useState(false);
 
     const [rowSelection, setRowSelection] = React.useState({});
     const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
@@ -34,9 +48,40 @@ export function MSWCTable() {
         pageSize: 10,
     });
 
+    const [statusFilter, setStatusFilter] = React.useState("all");
+
+    const handleEdit = React.useCallback((mswc: MSWC) => {
+        setEditingMSWC(mswc);
+        setOpen(true);
+    }, []);
+
+    const handleToggleStatus = React.useCallback(async (mswc: MSWC) => {
+        try {
+            await axios.put(`/api/mswc/${mswc.uuid}`, { ...mswc, status: mswc.status === "Active" ? "Inactive" : "Active" });
+            toast.success(`MSWC status updated to ${mswc.status === "Active" ? "Inactive" : "Active"}`);
+            queryClient.invalidateQueries({ queryKey: ["mswc"] });
+        } catch (error) {
+            console.error("Failed to toggle MSWC status:", error);
+            toast.error("Failed to update MSWC status");
+        }
+    }, [queryClient]);
+
+    const handleAdd = React.useCallback(() => {
+        setEditingMSWC(null);
+        setOpen(true);
+    }, []);
+
+    const handleStatusFilterChange = React.useCallback((status: string) => {
+        setStatusFilter(status);
+        setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+    }, []);
+
+    const columns = React.useMemo(() => getMSWCColumns(handleEdit, handleToggleStatus, statusFilter, handleStatusFilterChange), [handleEdit, handleToggleStatus, statusFilter, handleStatusFilterChange]);
+
     const { data: response, isLoading, isError } = useMSWC({
         page: pagination.pageIndex + 1,
         limit: pagination.pageSize,
+        status: statusFilter,
     });
 
     const data = React.useMemo(() => response?.data ?? [], [response]);
@@ -98,10 +143,24 @@ export function MSWCTable() {
                 </div>
                 <div className="flex items-center gap-2">
                     <DataTableViewOptions table={table} />
-                    <Button size="sm">
-                        <Plus className="mr-2 size-4" />
-                        Add MSWC
-                    </Button>
+                    <Dialog open={open} onOpenChange={setOpen}>
+                        <DialogTrigger asChild>
+                            <Button size="sm" onClick={handleAdd}>
+                                <Plus className="mr-2 size-4" />
+                                Add MSWC
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-2xl">
+                            <DialogHeader>
+                                <DialogTitle>{editingMSWC ? "Edit MSWC" : "Add New MSWC"}</DialogTitle>
+                            </DialogHeader>
+                            <MSWCForm
+                                onSuccess={() => setOpen(false)}
+                                onCancel={() => setOpen(false)}
+                                initialData={editingMSWC ?? undefined}
+                            />
+                        </DialogContent>
+                    </Dialog>
                 </div>
             </div>
             <div className="rounded-md border">

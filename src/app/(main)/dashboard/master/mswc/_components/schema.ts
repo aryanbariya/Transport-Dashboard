@@ -19,3 +19,15 @@ export interface MSWCResponse {
         totalPages: number;
     };
 }
+
+export const createMSWCSchema = mswcSchema.omit({
+    uuid: true,
+    mswc_id: true,
+});
+
+export const updateMSWCSchema = mswcSchema.omit({
+    uuid: true,
+    mswc_id: true,
+});
+
+export type CreateMSWCInput = z.infer<typeof createMSWCSchema>;
