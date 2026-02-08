@@ -18,12 +18,19 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandItem,
+    CommandList,
+} from "@/components/ui/command";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { Check, ChevronsUpDown } from "lucide-react";
 import { useMSWC } from "@/hooks/use-mswc";
 import { createGodownSchema, type CreateGodownInput, type Godown } from "./schema";
 
@@ -36,6 +43,7 @@ interface GodownFormProps {
 export function GodownForm({ onSuccess, onCancel, initialData }: GodownFormProps) {
     const queryClient = useQueryClient();
     const [isSubmitting, setIsSubmitting] = React.useState(false);
+    const [open, setOpen] = React.useState(false);
     const isEdit = !!initialData;
 
     // Fetch MSWCs for the dropdown
@@ -57,7 +65,7 @@ export function GodownForm({ onSuccess, onCancel, initialData }: GodownFormProps
                 await axios.put(`/api/subgodowns/${initialData.uuid}`, data);
                 toast.success("Godown updated successfully!");
             } else {
-                await axios.post("/api/godowns", data);
+                await axios.post("/api/subgodowns", data);
                 toast.success("Godown added successfully!");
             }
             queryClient.invalidateQueries({ queryKey: ["godowns"] });
@@ -78,22 +86,73 @@ export function GodownForm({ onSuccess, onCancel, initialData }: GodownFormProps
                     control={form.control}
                     name="parentGodown"
                     render={({ field }) => (
-                        <FormItem>
+                        <FormItem className="flex flex-col">
                             <FormLabel>MSWC (Parent Godown) <span className="text-destructive">*</span></FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select MSWC Godown" />
-                                    </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                    {mswcs.map((mswc) => (
-                                        <SelectItem key={mswc.uuid} value={mswc.godownName}>
-                                            {mswc.godownName}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                            <Popover open={open} onOpenChange={setOpen}>
+                                <PopoverTrigger asChild>
+                                    <FormControl>
+                                        <div className="relative">
+                                            <Input
+                                                placeholder="Select or Type MSWC Godown"
+                                                {...field}
+                                                onChange={(e) => {
+                                                    field.onChange(e);
+                                                    setOpen(true);
+                                                }}
+                                                onClick={() => setOpen((prev) => !prev)}
+                                                autoComplete="off"
+                                                className="pr-10"
+                                            />
+                                            <ChevronsUpDown
+                                                className="absolute right-3 top-2.5 size-4 cursor-pointer opacity-50 hover:opacity-100"
+                                                onClick={() => setOpen((prev) => !prev)}
+                                            />
+                                        </div>
+                                    </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent
+                                    className="w-[--radix-popover-trigger-width] p-0"
+                                    onOpenAutoFocus={(e) => e.preventDefault()}
+                                >
+                                    <Command shouldFilter={false}>
+                                        <CommandList>
+                                            <CommandGroup>
+                                                {mswcs.filter(mswc =>
+                                                    !field.value ||
+                                                    mswc.godownName.toLowerCase().includes(field.value.toLowerCase())
+                                                ).length === 0 && (
+                                                        <CommandEmpty>No MSWC found.</CommandEmpty>
+                                                    )}
+                                                {mswcs
+                                                    .filter(mswc =>
+                                                        !field.value ||
+                                                        mswc.godownName.toLowerCase().includes(field.value.toLowerCase())
+                                                    )
+                                                    .map((mswc) => (
+                                                        <CommandItem
+                                                            value={mswc.godownName}
+                                                            key={mswc.uuid}
+                                                            onSelect={() => {
+                                                                form.setValue("parentGodown", mswc.godownName);
+                                                                setOpen(false);
+                                                            }}
+                                                        >
+                                                            <Check
+                                                                className={cn(
+                                                                    "mr-2 size-4",
+                                                                    mswc.godownName === field.value
+                                                                        ? "opacity-100"
+                                                                        : "opacity-0"
+                                                                )}
+                                                            />
+                                                            {mswc.godownName}
+                                                        </CommandItem>
+                                                    ))}
+                                            </CommandGroup>
+                                        </CommandList>
+                                    </Command>
+                                </PopoverContent>
+                            </Popover>
                             <FormMessage />
                         </FormItem>
                     )}

@@ -21,9 +21,24 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 import { godownColumns } from "./columns";
 import { useGodowns } from "@/hooks/use-godowns";
+import { GodownForm } from "./godown-form";
+import type { Godown } from "./schema";
+import { useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
+import { toast } from "sonner";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
 
 export function GodownTable() {
-    const columns = React.useMemo(() => godownColumns, []);
+    const queryClient = useQueryClient();
+    const [editingGodown, setEditingGodown] = React.useState<Godown | null>(null);
+    const [open, setOpen] = React.useState(false);
+    const [statusFilter, setStatusFilter] = React.useState("all");
 
     const [rowSelection, setRowSelection] = React.useState({});
     const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
@@ -34,9 +49,38 @@ export function GodownTable() {
         pageSize: 10,
     });
 
+    const handleEdit = React.useCallback((godown: Godown) => {
+        setEditingGodown(godown);
+        setOpen(true);
+    }, []);
+
+    const handleToggleStatus = React.useCallback(async (godown: Godown) => {
+        try {
+            await axios.put(`/api/subgodowns/${godown.uuid}`, { ...godown, status: godown.status === "Active" ? "Inactive" : "Active" });
+            toast.success(`Godown status updated to ${godown.status === "Active" ? "Inactive" : "Active"}`);
+            queryClient.invalidateQueries({ queryKey: ["godowns"] });
+        } catch (error) {
+            console.error("Failed to toggle godown status:", error);
+            toast.error("Failed to update godown status");
+        }
+    }, [queryClient]);
+
+    const handleAdd = React.useCallback(() => {
+        setEditingGodown(null);
+        setOpen(true);
+    }, []);
+
+    const handleStatusFilterChange = React.useCallback((status: string) => {
+        setStatusFilter(status);
+        setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+    }, []);
+
+    const columns = React.useMemo(() => godownColumns(handleEdit, handleToggleStatus, statusFilter, handleStatusFilterChange), [handleEdit, handleToggleStatus, statusFilter, handleStatusFilterChange]);
+
     const { data: response, isLoading, isError } = useGodowns({
         page: pagination.pageIndex + 1,
         limit: pagination.pageSize,
+        status: statusFilter,
     });
 
     const data = React.useMemo(() => response?.data ?? [], [response]);
@@ -98,10 +142,24 @@ export function GodownTable() {
                 </div>
                 <div className="flex items-center gap-2">
                     <DataTableViewOptions table={table} />
-                    <Button size="sm">
-                        <Plus className="mr-2 size-4" />
-                        Add Godown
-                    </Button>
+                    <Dialog open={open} onOpenChange={setOpen}>
+                        <DialogTrigger asChild>
+                            <Button size="sm" onClick={handleAdd}>
+                                <Plus className="mr-2 size-4" />
+                                Add Godown
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-2xl">
+                            <DialogHeader>
+                                <DialogTitle>{editingGodown ? "Edit Godown" : "Add New Godown"}</DialogTitle>
+                            </DialogHeader>
+                            <GodownForm
+                                onSuccess={() => setOpen(false)}
+                                onCancel={() => setOpen(false)}
+                                initialData={editingGodown ?? undefined}
+                            />
+                        </DialogContent>
+                    </Dialog>
                 </div>
             </div>
             <div className="rounded-md border">
