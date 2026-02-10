@@ -15,7 +15,7 @@ import {
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import type { Scheme } from "./schema";
 
-export const schemeColumns: ColumnDef<Scheme>[] = [
+export const getSchemeColumns = (onEdit: (scheme: Scheme) => void): ColumnDef<Scheme>[] => [
     {
         id: "select",
         header: ({ table }) => (
@@ -75,12 +75,12 @@ export const schemeColumns: ColumnDef<Scheme>[] = [
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => navigator.clipboard.writeText(scheme.uuid)}>
+                        <DropdownMenuItem onClick={() => navigator.clipboard.writeText(scheme.uuid!)}>
                             Copy UUID
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem>View details</DropdownMenuItem>
-                        <DropdownMenuItem>Edit Scheme</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onEdit(scheme)}>Edit Scheme</DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
             );

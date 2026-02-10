@@ -19,11 +19,33 @@ import { DataTablePagination } from "@/components/data-table/data-table-paginati
 import { DataTableViewOptions } from "@/components/data-table/data-table-view-options";
 import { Skeleton } from "@/components/ui/skeleton";
 
-import { schemeColumns } from "./columns";
+import { getSchemeColumns } from "./columns";
+import type { Scheme } from "./schema";
 import { useSchemes } from "@/hooks/use-schemes";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
+import { SchemeForm } from "./scheme-form";
 
 export function SchemeTable() {
-    const columns = React.useMemo(() => schemeColumns, []);
+    const [open, setOpen] = React.useState(false);
+    const [editingScheme, setEditingScheme] = React.useState<Scheme | null>(null);
+
+    const handleEdit = React.useCallback((scheme: Scheme) => {
+        setEditingScheme(scheme);
+        setOpen(true);
+    }, []);
+
+    const handleAdd = React.useCallback(() => {
+        setEditingScheme(null);
+        setOpen(true);
+    }, []);
+
+    const columns = React.useMemo(() => getSchemeColumns(handleEdit), [handleEdit]);
 
     const [rowSelection, setRowSelection] = React.useState({});
     const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
@@ -53,7 +75,7 @@ export function SchemeTable() {
             globalFilter,
         },
         enableRowSelection: true,
-        getRowId: (row) => row.uuid,
+        getRowId: (row) => row.uuid!,
         onRowSelectionChange: setRowSelection,
         onSortingChange: setSorting,
         onColumnVisibilityChange: setColumnVisibility,
@@ -98,10 +120,24 @@ export function SchemeTable() {
                 </div>
                 <div className="flex items-center gap-2">
                     <DataTableViewOptions table={table} />
-                    <Button size="sm">
-                        <Plus className="mr-2 size-4" />
-                        Add Scheme
-                    </Button>
+                    <Dialog open={open} onOpenChange={setOpen}>
+                        <DialogTrigger asChild>
+                            <Button size="sm" onClick={handleAdd}>
+                                <Plus className="mr-2 size-4" />
+                                Add Scheme
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-md">
+                            <DialogHeader>
+                                <DialogTitle>{editingScheme ? "Edit Scheme" : "Add New Scheme"}</DialogTitle>
+                            </DialogHeader>
+                            <SchemeForm
+                                onSuccess={() => setOpen(false)}
+                                onCancel={() => setOpen(false)}
+                                initialData={editingScheme ?? undefined}
+                            />
+                        </DialogContent>
+                    </Dialog>
                 </div>
             </div>
             <div className="rounded-md border">
