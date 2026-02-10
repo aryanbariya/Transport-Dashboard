@@ -24,7 +24,7 @@ const formatDate = (dateStr: string) => {
     }
 };
 
-export const truckColumns: ColumnDef<Truck>[] = [
+export const truckColumns = (onEdit: (truck: Truck) => void): ColumnDef<Truck>[] => [
     {
         id: "select",
         header: ({ table }) => (
@@ -136,7 +136,7 @@ export const truckColumns: ColumnDef<Truck>[] = [
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem>View details</DropdownMenuItem>
-                        <DropdownMenuItem>Edit Truck</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onEdit(truck)}>Edit Truck</DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
             );

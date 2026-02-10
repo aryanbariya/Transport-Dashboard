@@ -5,14 +5,16 @@ import type { MSWCResponse } from "@/app/(main)/dashboard/master/mswc/_component
 interface UseMSWCProps {
     page: number;
     limit: number;
+    status?: string;
 }
 
-export function useMSWC({ page, limit }: UseMSWCProps) {
+export function useMSWC({ page, limit, status }: UseMSWCProps) {
     return useQuery({
-        queryKey: ["mswc", page, limit],
+        queryKey: ["mswc", page, limit, status],
         queryFn: async () => {
+            const statusParam = status && status !== "all" ? `&status=${status}` : "";
             const { data } = await axios.get<MSWCResponse>(
-                `/api/mswc?page=${page}&limit=${limit}`
+                `/api/mswc/unified?page=${page}&limit=${limit}${statusParam}`
             );
             return data;
         },

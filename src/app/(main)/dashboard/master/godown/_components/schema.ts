@@ -19,3 +19,10 @@ export interface GodownResponse {
         totalPages: number;
     };
 }
+
+export const createGodownSchema = z.object({
+    parentGodown: z.string().min(1, "Parent Godown is required"),
+    subGodown: z.string().min(1, "Sub Godown Name is required"),
+});
+
+export type CreateGodownInput = z.infer<typeof createGodownSchema>;

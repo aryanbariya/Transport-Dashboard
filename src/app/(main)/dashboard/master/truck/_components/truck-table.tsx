@@ -22,9 +22,26 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { truckColumns } from "./columns";
 import { useTrucks } from "@/hooks/use-trucks";
 
-export function TruckTable() {
-    const columns = React.useMemo(() => truckColumns, []);
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
+import { TruckForm } from "./truck-form";
+import { type Truck } from "./schema";
 
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+
+export function TruckTable() {
     const [rowSelection, setRowSelection] = React.useState({});
     const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
     const [globalFilter, setGlobalFilter] = React.useState("");
@@ -33,10 +50,22 @@ export function TruckTable() {
         pageIndex: 0,
         pageSize: 10,
     });
+    const [status, setStatus] = React.useState<string>("all");
+
+    const [open, setOpen] = React.useState(false);
+    const [editingTruck, setEditingTruck] = React.useState<Truck | null>(null);
+
+    const handleEdit = React.useCallback((truck: Truck) => {
+        setEditingTruck(truck);
+        setOpen(true);
+    }, []);
+
+    const columns = React.useMemo(() => truckColumns(handleEdit), [handleEdit]);
 
     const { data: response, isLoading, isError } = useTrucks({
         page: pagination.pageIndex + 1,
         limit: pagination.pageSize,
+        status: status,
     });
 
     const data = React.useMemo(() => response?.data ?? [], [response]);
@@ -97,11 +126,43 @@ export function TruckTable() {
                     />
                 </div>
                 <div className="flex items-center gap-2">
+                    <Select value={status} onValueChange={(value) => {
+                        setStatus(value);
+                        setPagination(prev => ({ ...prev, pageIndex: 0 }));
+                    }}>
+                        <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="Filter by Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Status</SelectItem>
+                            <SelectItem value="Active">Active</SelectItem>
+                            <SelectItem value="Inactive">Inactive</SelectItem>
+                        </SelectContent>
+                    </Select>
                     <DataTableViewOptions table={table} />
-                    <Button size="sm">
-                        <Plus className="mr-2 size-4" />
-                        Add Truck
-                    </Button>
+                    <Dialog open={open} onOpenChange={setOpen}>
+                        <DialogTrigger asChild>
+                            <Button size="sm" onClick={() => setEditingTruck(null)}>
+                                <Plus className="mr-2 size-4" />
+                                Add Truck
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                            <DialogHeader>
+                                <DialogTitle>{editingTruck ? "Edit Truck" : "Add New Truck"}</DialogTitle>
+                                <DialogDescription>
+                                    {editingTruck
+                                        ? "Update the truck details below."
+                                        : "Fill in the details to add a new truck."}
+                                </DialogDescription>
+                            </DialogHeader>
+                            <TruckForm
+                                onSuccess={() => setOpen(false)}
+                                onCancel={() => setOpen(false)}
+                                initialData={editingTruck || undefined}
+                            />
+                        </DialogContent>
+                    </Dialog>
                 </div>
             </div>
             <div className="rounded-md border">

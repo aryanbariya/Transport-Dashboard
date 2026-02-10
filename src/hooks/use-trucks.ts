@@ -5,14 +5,16 @@ import type { TruckResponse } from "@/app/(main)/dashboard/master/truck/_compone
 interface UseTrucksProps {
     page: number;
     limit: number;
+    status?: string;
 }
 
-export function useTrucks({ page, limit }: UseTrucksProps) {
+export function useTrucks({ page, limit, status }: UseTrucksProps) {
     return useQuery({
-        queryKey: ["trucks", page, limit],
+        queryKey: ["trucks", page, limit, status],
         queryFn: async () => {
+            const statusParam = status && status !== "all" ? `&status=${status}` : "";
             const { data } = await axios.get<TruckResponse>(
-                `/api/trucks?page=${page}&limit=${limit}`
+                `/api/trucks/unified?page=${page}&limit=${limit}${statusParam}`
             );
             return data;
         },

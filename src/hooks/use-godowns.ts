@@ -5,14 +5,16 @@ import type { GodownResponse } from "@/app/(main)/dashboard/master/godown/_compo
 interface UseGodownsProps {
     page: number;
     limit: number;
+    status?: string;
 }
 
-export function useGodowns({ page, limit }: UseGodownsProps) {
+export function useGodowns({ page, limit, status }: UseGodownsProps) {
     return useQuery({
-        queryKey: ["godowns", page, limit],
+        queryKey: ["godowns", page, limit, status],
         queryFn: async () => {
+            const statusParam = status && status !== "all" ? `&status=${status}` : "";
             const { data } = await axios.get<GodownResponse>(
-                `/api/godowns?page=${page}&limit=${limit}`
+                `/api/subgodowns/unified?page=${page}&limit=${limit}${statusParam}`
             );
             return data;
         },
