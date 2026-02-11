@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { Plus } from "lucide-react";
 import {
     getCoreRowModel,
     getFilteredRowModel,
@@ -11,13 +12,22 @@ import {
     type VisibilityState,
 } from "@tanstack/react-table";
 
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DataTable as DataTableCore } from "@/components/data-table/data-table";
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
 import { DataTableViewOptions } from "@/components/data-table/data-table-view-options";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
 
 import { getDOGenerateColumns } from "./columns";
+import { DOGenerateForm } from "./do-generate-form";
 import type { DOGenerate } from "./schema";
 import { useDOGenerate } from "../../../../../hooks/use-do-generate";
 import { useMSWC } from "@/hooks/use-mswc";
@@ -26,6 +36,7 @@ import { useSchemes } from "@/hooks/use-schemes";
 
 export function DOGenerateTable() {
     const [editingDO, setEditingDO] = React.useState<DOGenerate | null>(null);
+    const [open, setOpen] = React.useState(false);
 
     // Internal state for the table to ensure maximum reactivity
     const [rowSelection, setRowSelection] = React.useState({});
@@ -39,8 +50,12 @@ export function DOGenerateTable() {
 
     const handleEdit = React.useCallback((doGenerate: DOGenerate) => {
         setEditingDO(doGenerate);
-        // Form handling can be added later
-        console.log("Edit DO Generate:", doGenerate);
+        setOpen(true);
+    }, []);
+
+    const handleAdd = React.useCallback(() => {
+        setEditingDO(null);
+        setOpen(true);
     }, []);
 
     // Fetch all MSWC data to build godown_id -> godownName & godownUnder lookup
@@ -149,6 +164,24 @@ export function DOGenerateTable() {
                 </div>
                 <div className="flex items-center gap-2">
                     <DataTableViewOptions table={table} />
+                    <Dialog open={open} onOpenChange={setOpen}>
+                        <DialogTrigger asChild>
+                            <Button size="sm" onClick={handleAdd}>
+                                <Plus className="mr-2 size-4" />
+                                Add DO
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-2xl">
+                            <DialogHeader>
+                                <DialogTitle>{editingDO ? "Edit DO" : "Add New DO"}</DialogTitle>
+                            </DialogHeader>
+                            <DOGenerateForm
+                                onSuccess={() => setOpen(false)}
+                                onCancel={() => setOpen(false)}
+                                initialData={editingDO ?? undefined}
+                            />
+                        </DialogContent>
+                    </Dialog>
                 </div>
             </div>
             <div className="rounded-md border">
