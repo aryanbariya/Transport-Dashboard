@@ -5,14 +5,16 @@ import type { DriverResponse } from "@/app/(main)/dashboard/master/driver/_compo
 interface UseDriversProps {
     page: number;
     limit: number;
+    status?: string;
 }
 
-export function useDrivers({ page, limit }: UseDriversProps) {
+export function useDrivers({ page, limit, status }: UseDriversProps) {
     return useQuery({
-        queryKey: ["drivers", page, limit],
+        queryKey: ["drivers", page, limit, status],
         queryFn: async () => {
+            const statusParam = status && status !== "all" ? `&status=${status}` : "";
             const { data } = await axios.get<DriverResponse>(
-                `/api/drivers?page=${page}&limit=${limit}`
+                `/api/drivers/unified?page=${page}&limit=${limit}${statusParam}`
             );
             return data;
         },
