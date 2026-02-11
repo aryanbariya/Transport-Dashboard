@@ -15,82 +15,84 @@ import {
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import type { Packaging } from "./schema";
 
-export const packagingColumns: ColumnDef<Packaging>[] = [
-    {
-        id: "select",
-        header: ({ table }) => (
-            <Checkbox
-                checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
-                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                aria-label="Select all"
-            />
-        ),
-        cell: ({ row }) => (
-            <Checkbox
-                checked={row.getIsSelected()}
-                onCheckedChange={(value) => row.toggleSelected(!!value)}
-                aria-label="Select row"
-            />
-        ),
-        enableSorting: false,
-        enableHiding: false,
-    },
-    {
-        accessorKey: "pack_id",
-        header: ({ column }) => <DataTableColumnHeader column={column} title="ID" />,
-        cell: ({ row }) => <div className="text-sm">{row.getValue("pack_id")}</div>,
-    },
-    {
-        accessorKey: "material_name",
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Material Name" />,
-        cell: ({ row }) => <div className="font-bold text-base">{row.getValue("material_name")}</div>,
-    },
-    {
-        accessorKey: "weight",
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Weight" />,
-        cell: ({ row }) => <div className="text-sm font-medium">{row.getValue("weight")}</div>,
-    },
-    {
-        accessorKey: "status",
-        header: ({ column }) => <DataTableColumnHeader column={column} title="Status" />,
-        cell: ({ row }) => {
-            const status = row.getValue("status") as string;
-            return (
-                <Badge variant="outline" className="gap-1.5 px-1.5 text-muted-foreground">
-                    {status === "Active" ? (
-                        <CircleCheck className="size-3.5 fill-green-500 stroke-border dark:fill-green-400" />
-                    ) : (
-                        <CircleX className="size-3.5 fill-red-500 stroke-border dark:fill-red-400" />
-                    )}
-                    {status}
-                </Badge>
-            );
+export const getPackagingColumns = (
+    onEdit: (packaging: Packaging) => void
+): ColumnDef<Packaging>[] => [
+        {
+            id: "select",
+            header: ({ table }) => (
+                <Checkbox
+                    checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
+                    onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+                    aria-label="Select all"
+                />
+            ),
+            cell: ({ row }) => (
+                <Checkbox
+                    checked={row.getIsSelected()}
+                    onCheckedChange={(value) => row.toggleSelected(!!value)}
+                    aria-label="Select row"
+                />
+            ),
+            enableSorting: false,
+            enableHiding: false,
         },
-    },
-    {
-        id: "actions",
-        cell: ({ row }) => {
-            const packaging = row.original;
+        {
+            accessorKey: "pack_id",
+            header: ({ column }) => <DataTableColumnHeader column={column} title="ID" />,
+            cell: ({ row }) => <div className="text-sm">{row.getValue("pack_id")}</div>,
+        },
+        {
+            accessorKey: "material_name",
+            header: ({ column }) => <DataTableColumnHeader column={column} title="Material Name" />,
+            cell: ({ row }) => <div className="font-bold text-base">{row.getValue("material_name")}</div>,
+        },
+        {
+            accessorKey: "weight",
+            header: ({ column }) => <DataTableColumnHeader column={column} title="Weight" />,
+            cell: ({ row }) => <div className="text-sm font-medium">{row.getValue("weight")}</div>,
+        },
+        {
+            accessorKey: "status",
+            header: ({ column }) => <DataTableColumnHeader column={column} title="Status" />,
+            cell: ({ row }) => {
+                const status = row.getValue("status") as string;
+                return (
+                    <Badge variant="outline" className="gap-1.5 px-1.5 text-muted-foreground">
+                        {status === "Active" ? (
+                            <CircleCheck className="size-3.5 fill-green-500 stroke-border dark:fill-green-400" />
+                        ) : (
+                            <CircleX className="size-3.5 fill-red-500 stroke-border dark:fill-red-400" />
+                        )}
+                        {status}
+                    </Badge>
+                );
+            },
+        },
+        {
+            id: "actions",
+            cell: ({ row }) => {
+                const packaging = row.original;
 
-            return (
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="size-8 p-0" size="icon">
-                            <span className="sr-only">Open menu</span>
-                            <EllipsisVertical className="size-4" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => navigator.clipboard.writeText(packaging.uuid)}>
-                            Copy UUID
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem>View details</DropdownMenuItem>
-                        <DropdownMenuItem>Edit Packaging</DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            );
+                return (
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="size-8 p-0" size="icon">
+                                <span className="sr-only">Open menu</span>
+                                <EllipsisVertical className="size-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem onClick={() => navigator.clipboard.writeText(packaging.uuid || "")}>
+                                Copy UUID
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem>View details</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => onEdit(packaging)}>Edit Packaging</DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                );
+            },
         },
-    },
-];
+    ];

@@ -19,11 +19,32 @@ import { DataTablePagination } from "@/components/data-table/data-table-paginati
 import { DataTableViewOptions } from "@/components/data-table/data-table-view-options";
 import { Skeleton } from "@/components/ui/skeleton";
 
-import { packagingColumns } from "./columns";
+import { getPackagingColumns } from "./columns";
 import { usePackaging } from "@/hooks/use-packaging";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import { PackagingForm } from "./packaging-form";
+import type { Packaging } from "./schema";
 
 export function PackagingTable() {
-    const columns = React.useMemo(() => packagingColumns, []);
+    const [open, setOpen] = React.useState(false);
+    const [editingPackaging, setEditingPackaging] = React.useState<Packaging | null>(null);
+
+    const handleEdit = React.useCallback((packaging: Packaging) => {
+        setEditingPackaging(packaging);
+        setOpen(true);
+    }, []);
+
+    const handleAdd = React.useCallback(() => {
+        setEditingPackaging(null);
+        setOpen(true);
+    }, []);
+
+    const columns = React.useMemo(() => getPackagingColumns(handleEdit), [handleEdit]);
 
     const [rowSelection, setRowSelection] = React.useState({});
     const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
@@ -53,7 +74,7 @@ export function PackagingTable() {
             globalFilter,
         },
         enableRowSelection: true,
-        getRowId: (row) => row.uuid,
+        getRowId: (row) => row.uuid || "",
         onRowSelectionChange: setRowSelection,
         onSortingChange: setSorting,
         onColumnVisibilityChange: setColumnVisibility,
@@ -98,10 +119,22 @@ export function PackagingTable() {
                 </div>
                 <div className="flex items-center gap-2">
                     <DataTableViewOptions table={table} />
-                    <Button size="sm">
+                    <Button size="sm" onClick={handleAdd}>
                         <Plus className="mr-2 size-4" />
                         Add Packaging
                     </Button>
+                    <Dialog open={open} onOpenChange={setOpen}>
+                        <DialogContent className="sm:max-w-xl">
+                            <DialogHeader>
+                                <DialogTitle>{editingPackaging ? "Edit Packaging" : "Add New Packaging"}</DialogTitle>
+                            </DialogHeader>
+                            <PackagingForm
+                                onSuccess={() => setOpen(false)}
+                                onCancel={() => setOpen(false)}
+                                initialData={editingPackaging ?? undefined}
+                            />
+                        </DialogContent>
+                    </Dialog>
                 </div>
             </div>
             <div className="rounded-md border">
