@@ -15,6 +15,27 @@ const apiClient = axios.create({
   },
 });
 
+// Add request interceptor to attach auth token from cookies (server-side)
+apiClient.interceptors.request.use(
+  async (config) => {
+    // Only run on server side (API routes)
+    if (typeof window === 'undefined') {
+      try {
+        const { cookies } = await import('next/headers');
+        const cookieStore = await cookies();
+        const token = cookieStore.get('auth_token')?.value;
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+      } catch {
+        // Silently fail if cookies are not available
+      }
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 // Add response interceptor for error handling
 apiClient.interceptors.response.use(
   (response) => response,

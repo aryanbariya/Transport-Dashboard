@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import axios from "axios";
 
 import { BadgeCheck, Bell, CreditCard, LogOut } from "lucide-react";
 
@@ -26,7 +28,18 @@ export function AccountSwitcher({
     readonly role: string;
   }>;
 }) {
+  const router = useRouter();
   const [activeUser, setActiveUser] = useState(users[0]);
+
+  const handleLogout = async () => {
+    try {
+      await axios.post("/api/auth/logout");
+      router.push("/auth/v1/login");
+      router.refresh();
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
 
   return (
     <DropdownMenu>
@@ -71,7 +84,7 @@ export function AccountSwitcher({
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>
+        <DropdownMenuItem onClick={handleLogout}>
           <LogOut />
           Log out
         </DropdownMenuItem>
@@ -79,3 +92,4 @@ export function AccountSwitcher({
     </DropdownMenu>
   );
 }
+
