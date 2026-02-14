@@ -122,7 +122,7 @@ export const sidebarItems: NavGroup[] = [
         icon: Fingerprint,
         subItems: [
           { title: "Do Generate", url: "/dashboard/do-generate" },
-          { title: "Do Allocation", url: "/auth/v2/login", newTab: true },
+          { title: "Do Allocation", url: "/dashboard/do-allocation" },
         ],
       },
       // {
