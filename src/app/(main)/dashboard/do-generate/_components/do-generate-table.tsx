@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import axios from "axios";
 import { Plus } from "lucide-react";
 import {
     getCoreRowModel,
@@ -48,9 +49,18 @@ export function DOGenerateTable() {
         pageSize: 10,
     });
 
-    const handleEdit = React.useCallback((doGenerate: DOGenerate) => {
-        setEditingDO(doGenerate);
-        setOpen(true);
+    const handleEdit = React.useCallback(async (doGenerate: DOGenerate) => {
+        try {
+            // Fetch full DO details including entries
+            const { data } = await axios.get(`/api/do-generate/${doGenerate.do_no}`);
+            setEditingDO(data);
+            setOpen(true);
+        } catch (error) {
+            console.error("Failed to fetch DO details:", error);
+            // Fallback to table data if fetch fails
+            setEditingDO(doGenerate);
+            setOpen(true);
+        }
     }, []);
 
     const handleAdd = React.useCallback(() => {

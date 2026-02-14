@@ -37,8 +37,17 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
     try {
         const body = await request.json();
-        const data = await put('/api/do', body);
-        return NextResponse.json(data, { status: 200 });
+        const { stock_id, ...data } = body;
+
+        if (!stock_id) {
+            return NextResponse.json(
+                { error: 'stock_id is required for update' },
+                { status: 400 }
+            );
+        }
+
+        const response = await put(`/api/do/${stock_id}`, data);
+        return NextResponse.json(response, { status: 200 });
     } catch (error) {
         console.error('Error in PUT /api/do-generate:', error);
         return NextResponse.json(
