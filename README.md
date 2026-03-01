@@ -66,7 +66,7 @@ src/
 3. **Environment Setup**
    Create a `.env` file in the root directory and add your backend URL:
    ```env
-   VITE_API_BACK_URL=your_api_url_here
+   NEXT_PUBLIC_API_URL=your_api_url_here
    ```
 
 4. **Start Developing**
