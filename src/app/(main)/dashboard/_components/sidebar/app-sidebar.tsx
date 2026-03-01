@@ -23,6 +23,9 @@ import { NavMain } from "./nav-main";
 import { NavUser } from "./nav-user";
 import { NavDocuments } from "./nav-documents";
 import { NavSecondary } from "./nav-secondary";
+import { AccountSwitcher } from "./account-switcher";
+import { users } from "@/data/users";
+import Image from "next/image";
 
 const _data = {
   navSecondary: [
@@ -77,20 +80,26 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     <Sidebar {...props} variant={variant} collapsible={collapsible}>
       <SidebarHeader>
         <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <Link prefetch={false} href="/dashboard/default">
-                <Command />
-                <span className="font-semibold text-base">{APP_CONFIG.name}</span>
-              </Link>
-            </SidebarMenuButton>
+          <SidebarMenuItem className="flex items-center gap-2 px-2">
+            <div className="flex aspect-square size-10 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+              <Image
+                src="/assets/logo/pds-transport-icon.png"
+                alt="PDS-Transport"
+                width={40}
+                height={40}
+                className="rounded-lg object-contain"
+              />
+            </div>
+            <div className="grid flex-1 text-left text-sm leading-tight">
+              <span className="truncate font-semibold italic text-blue-600 text-base">PDS-Transport</span>
+            </div>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={sidebarItems} />
-        <NavDocuments items={_data.documents} />
-        <NavSecondary items={_data.navSecondary} className="mt-auto" />
+        {/* <NavDocuments items={_data.documents} />
+        <NavSecondary items={_data.navSecondary} className="mt-auto" /> */}
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={rootUser} />
