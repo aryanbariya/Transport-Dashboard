@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 
 import { CircleHelp, ClipboardList, Command, Database, File, Search, Settings } from "lucide-react";
@@ -15,17 +16,15 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { APP_CONFIG } from "@/config/app-config";
-import { rootUser } from "@/data/users";
+import { rootUser, users } from "@/data/users";
 import { sidebarItems } from "@/navigation/sidebar/sidebar-items";
 import { usePreferencesStore } from "@/stores/preferences/preferences-provider";
 
-import { NavMain } from "./nav-main";
-import { NavUser } from "./nav-user";
-import { NavDocuments } from "./nav-documents";
-import { NavSecondary } from "./nav-secondary";
 import { AccountSwitcher } from "./account-switcher";
-import { users } from "@/data/users";
-import Image from "next/image";
+import { NavDocuments } from "./nav-documents";
+import { NavMain } from "./nav-main";
+import { NavSecondary } from "./nav-secondary";
+import { NavUser } from "./nav-user";
 
 const _data = {
   navSecondary: [
@@ -80,8 +79,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     <Sidebar {...props} variant={variant} collapsible={collapsible}>
       <SidebarHeader>
         <SidebarMenu>
-          <SidebarMenuItem className="flex items-center gap-2 px-2">
-            <div className="flex aspect-square size-10 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+          <SidebarMenuItem className="flex items-center gap-2 px-2 group-data-[collapsible=icon]:px-0">
+            <div className="flex aspect-square size-10 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground group-data-[collapsible=icon]:size-8">
               <Image
                 src="/assets/logo/pds-transport-icon.png"
                 alt="PDS-Transport"
@@ -90,7 +89,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 className="rounded-lg object-contain"
               />
             </div>
-            <div className="grid flex-1 text-left text-sm leading-tight">
+            <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
               <span className="truncate font-semibold italic text-blue-600 text-base">PDS-Transport</span>
             </div>
           </SidebarMenuItem>
