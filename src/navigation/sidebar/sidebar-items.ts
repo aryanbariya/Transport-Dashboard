@@ -178,6 +178,11 @@ export const sidebarItems: NavGroup[] = [
         url: "/dashboard/firsttapa",
         icon: SquareArrowUpRight,
       },
+      {
+        title: "First Report",
+        url: "/dashboard/firstreport",
+        icon: ReceiptText,
+      },
     ],
   },
 ];
