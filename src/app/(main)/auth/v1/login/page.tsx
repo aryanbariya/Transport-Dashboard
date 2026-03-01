@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 
-import { Command } from "lucide-react";
+import Image from "next/image";
 
 import { LoginForm } from "../../_components/login-form";
 
@@ -10,7 +10,15 @@ export default function LoginV1() {
       <div className="hidden bg-primary lg:block lg:w-1/3">
         <div className="flex h-full flex-col items-center justify-center p-12 text-center">
           <div className="space-y-6">
-            <Command className="mx-auto size-12 text-primary-foreground" />
+            <div className="flex aspect-square size-16 items-center justify-center rounded-xl bg-primary-foreground mx-auto">
+              <Image
+                src="/assets/logo/pds-transport-icon.png"
+                alt="PDS-Transport"
+                width={64}
+                height={64}
+                className="rounded-lg object-contain"
+              />
+            </div>
             <div className="space-y-2">
               <h1 className="font-light text-5xl text-primary-foreground">Welcome</h1>
               <p className="text-primary-foreground/80 text-xl">Admin Dashboard</p>

@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 
+import Image from "next/image";
 import Link from "next/link";
 
 import { Globe } from "lucide-react";
@@ -13,9 +14,20 @@ export default function LoginV2() {
   return (
     <>
       <div className="mx-auto flex w-full flex-col justify-center space-y-8 sm:w-[350px]">
-        <div className="space-y-2 text-center">
-          <h1 className="font-medium text-3xl">Login to your account</h1>
-          <p className="text-muted-foreground text-sm">Please enter your details to login.</p>
+        <div className="space-y-6 text-center">
+          <div className="flex aspect-square size-16 items-center justify-center rounded-xl bg-sidebar-primary text-sidebar-primary-foreground mx-auto shadow-sm border">
+            <Image
+              src="/assets/logo/pds-transport-icon.png"
+              alt="PDS-Transport"
+              width={64}
+              height={64}
+              className="rounded-lg object-contain"
+            />
+          </div>
+          <div className="space-y-2">
+            <h1 className="font-medium text-3xl">Login to your account</h1>
+            <p className="text-muted-foreground text-sm">Please enter your details to login.</p>
+          </div>
         </div>
         <div className="space-y-4">
           <GoogleButton className="w-full" />
