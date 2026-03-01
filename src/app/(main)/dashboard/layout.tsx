@@ -28,6 +28,7 @@ export default async function Layout({ children }: Readonly<{ children: ReactNod
       <AppSidebar variant={variant} collapsible={collapsible} />
       <SidebarInset
         className={cn(
+          "min-w-0 flex-1",
           "[html[data-content-layout=centered]_&]:mx-auto! [html[data-content-layout=centered]_&]:max-w-screen-2xl!",
           // Adds right margin for inset sidebar in centered layout up to 113rem.
           // On wider screens with collapsed sidebar, removes margin and sets margin auto for alignment.
@@ -54,7 +55,7 @@ export default async function Layout({ children }: Readonly<{ children: ReactNod
             </div>
           </div>
         </header>
-        <div className="h-full p-4 md:p-6">{children}</div>
+        <div className="h-full min-w-0 p-4 md:p-6">{children}</div>
       </SidebarInset>
     </SidebarProvider>
   );
